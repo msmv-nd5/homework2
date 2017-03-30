@@ -15,35 +15,16 @@ const randomInteger = (min, max) => {
 Функция асинхронна, поэтому принимает кроме основных параметров еще колбэк.
 */
 const hide = (path, pokemonList, cb) => {
-    // "Покемоны должны быть выбраны из списка случайным образом"
-    pokemonList.sort(() => Math.random() - 0.5);
-
-    // "Не более 3"
-    pokemonList.splice(2, pokemonList.length - 3);
-
-    //Массив [номер папки - покемон]. Каждому покемону присваиваем случайный номер с проверкой на повтор случайного значения.
-    var pockemonsForHide = [];
-    pokemonList.forEach((pockemon) => {
-        let rand = randomInteger(1, 10);
-        while (pockemonsForHide[rand] instanceof Pokemon) {
-            rand = randomInteger(1, 10);
-        }
-        pockemonsForHide[rand] = pockemon;
-    })
-
-    // В counter будем считать кол-во спрятанных покемонов. Как только оно станет равно длине массива pockemonsForHide, работа завершена.
+    pokemonList = preparePokemonListForHide(pokemonList);
+    var pockemonsForHide = getPokemonArrayForHide(pokemonList);
     var counter = 0;
     for (let i = 1; i <= 10; i++) {
         let realPath = (i == 10) ? path + i : path + '0' + i;
         fs.mkdir(realPath, err => {
-            if (err) {
-                throw (err);
-            }
-            //console.log(`Папка ${realPath} создана`);
+            if (err) { throw (err); }
             if (pockemonsForHide[i] instanceof Pokemon) {
                 let data = pockemonsForHide[i].getName + '|' + pockemonsForHide[i].getLevel;
                 fs.writeFile(realPath + '/pockemon.txt', data, err => {
-                    //console.log(`Покемон ${data} спрятан в папке ${realPath}`);
                     counter++;
                     if (counter == pokemonList.length) {
                         cb(pokemonList);
@@ -53,6 +34,30 @@ const hide = (path, pokemonList, cb) => {
 
         });
     }
+}
+
+
+const preparePokemonListForHide = (pokemonList) => {
+    // "Покемоны должны быть выбраны из списка случайным образом"
+    pokemonList.sort(() => Math.random() - 0.5);
+
+    // "Не более 3"
+    pokemonList.splice(2, pokemonList.length - 3);
+
+    return pokemonList;
+}
+
+const getPokemonArrayForHide = (pokemonList) => {
+//Массив [номер папки - покемон]. Каждому покемону присваиваем случайный номер с проверкой на повтор случайного значения.
+    var pockemonsForHide = [];
+    pokemonList.forEach((pockemon) => {
+        let rand = randomInteger(1, 10);
+        while (pockemonsForHide[rand] instanceof Pokemon) {
+            rand = randomInteger(1, 10);
+        }
+        pockemonsForHide[rand] = pockemon;
+    })
+    return pockemonsForHide;
 }
 
 
@@ -71,9 +76,6 @@ const seek = (path, cb) => {
                 cb(pokemonList);
             }
         });
-
-
-
     }
 }
 
